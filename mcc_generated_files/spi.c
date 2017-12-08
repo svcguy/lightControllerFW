@@ -70,8 +70,8 @@ void SPI_Initialize(void)
     // SSPEN enabled; WCOL no_collision; CKP Idle:Low, Active:High; SSPM FOSC/4_SSPxADD; SSPOV no_overflow; 
     SSP1CON1 = 0x2A;
     
-    // SSP1ADD 4; 
-    SSP1ADD = 0x04;
+    // SSP1ADD 7; 
+    SSP1ADD = 0x07;
 }
 
 uint8_t SPI_Exchange8bit(uint8_t data)
