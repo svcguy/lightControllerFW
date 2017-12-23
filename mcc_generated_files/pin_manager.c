@@ -83,7 +83,7 @@ void PIN_MANAGER_Initialize(void)
     */ 
     WPUD = 0x00;
     WPUE = 0x08;
-    WPUB = 0xD7;
+    WPUB = 0xD0;
     WPUA = 0xD0;
     WPUC = 0x00;
     OPTION_REGbits.nWPUEN = 0;
@@ -108,10 +108,10 @@ void PIN_MANAGER_Initialize(void)
     PPSLOCK = 0xAA;
     PPSLOCKbits.PPSLOCKED = 0x00; // unlock PPS
 
-    RB1PPSbits.RB1PPS = 0x10;   //RB1->MSSP:SCK;
+    RB1PPSbits.RB1PPS = 0x11;   //RB1->MSSP:SDO;
     SSPDATPPSbits.SSPDATPPS = 0x0A;   //RB2->MSSP:SDI;
-    RB0PPSbits.RB0PPS = 0x11;   //RB0->MSSP:SDO;
-    SSPCLKPPSbits.SSPCLKPPS = 0x09;   //RB1->MSSP:SCK;
+    RB0PPSbits.RB0PPS = 0x10;   //RB0->MSSP:SCK;
+    SSPCLKPPSbits.SSPCLKPPS = 0x08;   //RB0->MSSP:SCK;
 
     PPSLOCK = 0x55;
     PPSLOCK = 0xAA;

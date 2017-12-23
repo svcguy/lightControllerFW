@@ -55,6 +55,10 @@ void interrupt INTERRUPT_InterruptManager (void)
     {
         TMR2_ISR();
     }
+    else if(INTCONbits.PEIE == 1 && PIE1bits.ADIE == 1 && PIR1bits.ADIF == 1)
+    {
+        ADC_ISR();
+    }
     else
     {
         //Unhandled Interrupt

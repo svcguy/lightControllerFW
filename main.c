@@ -40,28 +40,54 @@
     TERMS.
 */
 
+#pragma warning disable 520
+
 #include "mcc_generated_files/mcc.h"
 
 #define NUM_OF_LEDS         144
 #define NUM_OF_SECTIONS     4
+#define SECT_0_START        1
+#define SECT_0_END          ((NUM_OF_LEDS / NUM_OF_SECTIONS) + SECT_0_START)
+#define SECT_1_START        SECT_0_END
+#define SECT_1_END          ((NUM_OF_LEDS / NUM_OF_SECTIONS) + SECT_1_START)
+#define SECT_2_START        SECT_1_END
+#define SECT_2_END          ((NUM_OF_LEDS / NUM_OF_SECTIONS) + SECT_2_START)
+#define SECT_3_START        SECT_2_END
+#define SECT_3_END          ((NUM_OF_LEDS / NUM_OF_SECTIONS) + SECT_3_START)
 #define BYTES_PER_LED       4
-#define HEADER_BYTES        4
-#define TRAILER_BYTES       4
-#define DATA_SIZE           ( HEADER_BYTES + (NUM_OF_LEDS * BYTES_PER_LED) + TRAILER_BYTES )
+#define START_FRAME         1
+#define RESET_FRAME         1
+#define STOP_FRAMES         (((NUM_OF_LEDS / 2) / (BYTES_PER_LED * 8)) + 1)
+#define DATA_SIZE           ( START_FRAME + NUM_OF_LEDS + RESET_FRAME + STOP_FRAMES )
+#define START_FRAME_VALUE   0x00000000
+#define RESET_FRAME_VALUE   0x00000000
+#define STOP_FRAME_VALUE    0x00000000
 
-uint8_t ledData[ DATA_SIZE ];
+// Vdd = 5V, ADC res = 10 bits
+// (5V) / (2^10) = 0.0048 V
+#define MV_PER_ADC_STEP     5
+#define SYSTEM_GAIN_VOLTAGE 10
 
-uint8_t ledBrightness = 0x00;
-uint8_t section0State = 0x00;
-uint8_t section1State = 0x00;
-uint8_t section2State = 0x00;
-uint8_t section3State = 0x00;
 
-void setSection0State(bool state);
-void setSection1State(bool state);
-void setSection2State(bool state);
-void setSection3State(bool state);
-void setLedBrightness(uint8_t brightness);
+#define MA_PER_ADC_STEP     5
+#define SYSTEM_GAIN_CURRENT 2
+
+uint32_t ledData[ DATA_SIZE ];
+
+volatile bool changedFlag = 0;
+
+uint16_t adcResult;
+uint16_t ledVoltage_mV;
+uint16_t ledCurrent_mA;
+
+volatile uint8_t ledBrightness = 0x00;
+volatile bool section0State = 1;
+volatile bool section1State = 1;
+volatile bool section2State = 1;
+volatile bool section3State = 1;
+
+uint32_t setPixel(uint8_t r, uint8_t g, uint8_t b, uint8_t bright);
+
 void buildLedData(void);
 void sendLedData(void);
 
@@ -87,8 +113,7 @@ void main(void)
     MTOUCH_Button_SetNotPressedCallback(handleButtonRelease);
     
     // Start PWR_EN pin HIGH (turns off power to LED strip)
-    //PWR_EN_SetHigh();
-    PWR_EN_SetLow();
+    PWR_EN_SetHigh();
     
     // User LEDs start on RED.  Wait 1s then cycle to green, then back to red.    
     __delay_ms(1000);
@@ -98,99 +123,80 @@ void main(void)
     LATD = 0x00;
     LATC = 0xFF;
     
-    setSection0State(1);
-    setSection1State(1);
-    setSection2State(1);
-    setSection3State(1);
-    setLedBrightness(0x1F);
-    buildLedData();
-    sendLedData();
-    NOP();
-    
     while (1)
     {
-        // Add your application code
+        // Read LED Voltage
+        adcResult = ADC_GetConversion(V_SNS);
+        ledVoltage_mV = adcResult * MV_PER_ADC_STEP * SYSTEM_GAIN_VOLTAGE;
+        // Read LED Current
+        adcResult = ADC_GetConversion(I_SNS);
+        ledCurrent_mA = adcResult * MA_PER_ADC_STEP * SYSTEM_GAIN_CURRENT;        
+                
+        // Button Pressed Check
+        if(changedFlag)
+        {
+            __delay_ms(10);
+            changedFlag = 0;
+            buildLedData();
+            sendLedData();
+        }
+        
+        // MTOUCH Service
         MTOUCH_Service_Mainloop();
     }
 }
 
-void setSection0State(bool state)
-{
-    section0State = state;
-}
-
-void setSection1State(bool state)
-{
-    section1State = state;
-}
-
-void setSection2State(bool state)
-{
-    section2State = state;
-}
-
-void setSection3State(bool state)
-{
-    section3State = state;
-}
-
-void setLedBrightness(uint8_t brightness)
-{
-    // range check brightness
-    if(!(brightness < 0x20))
-        brightness = 0x1F;
-    
-    ledBrightness = brightness;
-}
-
 void buildLedData(void)
 {
-    uint16_t i=0;
-    uint8_t sectionState = 0x00;
+    uint16_t i=0, j=0;
+    uint8_t section = 0;
     
-    // Clear data buffer
-    for(i=0; i<DATA_SIZE; i++)
-        ledData[i] = 0x00;
+    ledData[0] = START_FRAME_VALUE;
     
-    // Fill data buffer based on current values
-    for(i=0; i<HEADER_BYTES; i++)
-        ledData[i] = 0x00;
-    for(i=HEADER_BYTES; i<(DATA_SIZE-TRAILER_BYTES); i+=BYTES_PER_LED)
+    for( i = 1; i < ( NUM_OF_LEDS + 1 ); i++)  // ledData[1] is first led
     {
-        if( (i/4) > 0 && (i/4) < (NUM_OF_LEDS / NUM_OF_SECTIONS) )
-        {// Section 0
-            sectionState = section0State;
-        }
-        if( (i/4) > (NUM_OF_LEDS / NUM_OF_SECTIONS) && (i/4) < ((NUM_OF_LEDS / NUM_OF_SECTIONS) * 2))
-        {// Section 1
-            sectionState = section1State;
-        }
-        if( (i/4) > ((NUM_OF_LEDS / NUM_OF_SECTIONS) * 2) && (i/4) < ((NUM_OF_LEDS / NUM_OF_SECTIONS) * 3))
-        {// Section 2
-            sectionState = section2State;
-        }
-        if( (i/4) > ((NUM_OF_LEDS / NUM_OF_SECTIONS) * 3) && (i/4) < NUM_OF_LEDS)
-        {// Section 3
-            sectionState = section3State;
-        }
-        ledData[i] = (uint8_t)((0xFF & ledBrightness) | 0xE0);
-        ledData[i+1] = (uint8_t)(0xFF * sectionState);
-        ledData[i+2] = (uint8_t)(0xFF * sectionState);
-        ledData[i+3] = (uint8_t)(0xFF * sectionState);
+        if( i >= SECT_0_START && i <= SECT_0_END )
+            section = section0State;
+        if( i >= SECT_1_START && i <= SECT_1_END )
+            section = section1State;
+        if( i >= SECT_2_START && i <= SECT_2_END )
+            section = section2State;
+        if( i >= SECT_3_START && i <= SECT_3_END )
+            section = section3State;
+        
+        ledData[i] = setPixel(ledBrightness * section, ledBrightness * section, ledBrightness * section, 0x1F * section);
     }
-    for(i=(DATA_SIZE-TRAILER_BYTES); i<DATA_SIZE; i++)
-        ledData[i] = 0xFF;        
+    
+    ledData[NUM_OF_LEDS + 1] = RESET_FRAME_VALUE;
+    
+    for( j = ( NUM_OF_LEDS + 2 ); j < DATA_SIZE; j++)
+    {
+        ledData[j] = STOP_FRAME_VALUE;
+    }
+}
+
+uint32_t setPixel(uint8_t r, uint8_t g, uint8_t b, uint8_t bright)
+{
+    // range check brightness
+    if(!(bright < 0x20))
+    {
+        bright = 0x1F;
+    }
+    
+    return ( (uint32_t)( 0xE0 | bright) | (uint32_t)b << 8 | (uint32_t)g << 16 | (uint32_t)r << 24 );
 }
 
 void sendLedData(void)
 {
     uint8_t readDummy;
+    uint8_t *dataPointer;
     uint16_t i;
     
-    for(i=0; i<DATA_SIZE; i++)
+    dataPointer = (uint8_t *)ledData;
+    
+    for(i=0; i<(DATA_SIZE*BYTES_PER_LED); i++)
     {
-        readDummy = SPI_Exchange8bit(ledData[i]);
-        readDummy = SPI_Exchange8bit(DUMMY_DATA);
+        readDummy = SPI_Exchange8bit(dataPointer[i]);
     }    
 }
 
@@ -241,34 +247,50 @@ void handleButtonRelease(enum mtouch_button_names button)
         case button_ON:
             LED_1_RED_Toggle();
             LED_1_GREEN_Toggle();
+            PWR_EN_SetLow();
+            changedFlag = 1;
             break;
         case button_BRIGHT_UP:
             LED_2_RED_Toggle();
             LED_2_GREEN_Toggle();
+            ledBrightness+=8;
+            changedFlag = 1;
             break;
         case button_BRIGHT_DN:
             LED_3_RED_Toggle();
             LED_3_GREEN_Toggle();
+            ledBrightness-=8;
+            changedFlag = 1;
             break;
         case button_OFF:
             LED_4_RED_Toggle();
             LED_4_GREEN_Toggle();
+            PWR_EN_SetHigh();
+            changedFlag = 1;
             break;
         case button_SECT_0:
             LED_5_RED_Toggle();
             LED_5_GREEN_Toggle();
+            section0State = !section0State;
+            changedFlag = 1;
             break;
         case button_SECT_1:
             LED_6_RED_Toggle();
             LED_6_GREEN_Toggle();
+            section1State = !section1State;
+            changedFlag = 1;
             break;
         case button_SECT_2:
             LED_7_RED_Toggle();
             LED_7_GREEN_Toggle();
+            section2State = !section2State;
+            changedFlag = 1;
             break;
         case button_SECT_3:
             LED_8_RED_Toggle();
             LED_8_GREEN_Toggle();
+            section3State = !section3State;
+            changedFlag = 1;
             break;
         default:
             break;

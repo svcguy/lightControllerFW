@@ -119,45 +119,45 @@
 #define RA5_SetAnalogMode() do { ANSELAbits.ANSA5 = 1; } while(0)
 #define RA5_SetDigitalMode()do { ANSELAbits.ANSA5 = 0; } while(0)
 
-// get/set SDO aliases
-#define SDO_TRIS               TRISBbits.TRISB0
-#define SDO_LAT                LATBbits.LATB0
-#define SDO_PORT               PORTBbits.RB0
-#define SDO_WPU                WPUBbits.WPUB0
-#define SDO_OD                ODCONBbits.ODB0
-#define SDO_ANS                ANSELBbits.ANSB0
-#define SDO_SetHigh()            do { LATBbits.LATB0 = 1; } while(0)
-#define SDO_SetLow()             do { LATBbits.LATB0 = 0; } while(0)
-#define SDO_Toggle()             do { LATBbits.LATB0 = ~LATBbits.LATB0; } while(0)
-#define SDO_GetValue()           PORTBbits.RB0
-#define SDO_SetDigitalInput()    do { TRISBbits.TRISB0 = 1; } while(0)
-#define SDO_SetDigitalOutput()   do { TRISBbits.TRISB0 = 0; } while(0)
-#define SDO_SetPullup()      do { WPUBbits.WPUB0 = 1; } while(0)
-#define SDO_ResetPullup()    do { WPUBbits.WPUB0 = 0; } while(0)
-#define SDO_SetPushPull()    do { ODCONBbits.ODB0 = 0; } while(0)
-#define SDO_SetOpenDrain()   do { ODCONBbits.ODB0 = 1; } while(0)
-#define SDO_SetAnalogMode()  do { ANSELBbits.ANSB0 = 1; } while(0)
-#define SDO_SetDigitalMode() do { ANSELBbits.ANSB0 = 0; } while(0)
-
 // get/set SCK aliases
-#define SCK_TRIS               TRISBbits.TRISB1
-#define SCK_LAT                LATBbits.LATB1
-#define SCK_PORT               PORTBbits.RB1
-#define SCK_WPU                WPUBbits.WPUB1
-#define SCK_OD                ODCONBbits.ODB1
-#define SCK_ANS                ANSELBbits.ANSB1
-#define SCK_SetHigh()            do { LATBbits.LATB1 = 1; } while(0)
-#define SCK_SetLow()             do { LATBbits.LATB1 = 0; } while(0)
-#define SCK_Toggle()             do { LATBbits.LATB1 = ~LATBbits.LATB1; } while(0)
-#define SCK_GetValue()           PORTBbits.RB1
-#define SCK_SetDigitalInput()    do { TRISBbits.TRISB1 = 1; } while(0)
-#define SCK_SetDigitalOutput()   do { TRISBbits.TRISB1 = 0; } while(0)
-#define SCK_SetPullup()      do { WPUBbits.WPUB1 = 1; } while(0)
-#define SCK_ResetPullup()    do { WPUBbits.WPUB1 = 0; } while(0)
-#define SCK_SetPushPull()    do { ODCONBbits.ODB1 = 0; } while(0)
-#define SCK_SetOpenDrain()   do { ODCONBbits.ODB1 = 1; } while(0)
-#define SCK_SetAnalogMode()  do { ANSELBbits.ANSB1 = 1; } while(0)
-#define SCK_SetDigitalMode() do { ANSELBbits.ANSB1 = 0; } while(0)
+#define SCK_TRIS               TRISBbits.TRISB0
+#define SCK_LAT                LATBbits.LATB0
+#define SCK_PORT               PORTBbits.RB0
+#define SCK_WPU                WPUBbits.WPUB0
+#define SCK_OD                ODCONBbits.ODB0
+#define SCK_ANS                ANSELBbits.ANSB0
+#define SCK_SetHigh()            do { LATBbits.LATB0 = 1; } while(0)
+#define SCK_SetLow()             do { LATBbits.LATB0 = 0; } while(0)
+#define SCK_Toggle()             do { LATBbits.LATB0 = ~LATBbits.LATB0; } while(0)
+#define SCK_GetValue()           PORTBbits.RB0
+#define SCK_SetDigitalInput()    do { TRISBbits.TRISB0 = 1; } while(0)
+#define SCK_SetDigitalOutput()   do { TRISBbits.TRISB0 = 0; } while(0)
+#define SCK_SetPullup()      do { WPUBbits.WPUB0 = 1; } while(0)
+#define SCK_ResetPullup()    do { WPUBbits.WPUB0 = 0; } while(0)
+#define SCK_SetPushPull()    do { ODCONBbits.ODB0 = 0; } while(0)
+#define SCK_SetOpenDrain()   do { ODCONBbits.ODB0 = 1; } while(0)
+#define SCK_SetAnalogMode()  do { ANSELBbits.ANSB0 = 1; } while(0)
+#define SCK_SetDigitalMode() do { ANSELBbits.ANSB0 = 0; } while(0)
+
+// get/set SDO aliases
+#define SDO_TRIS               TRISBbits.TRISB1
+#define SDO_LAT                LATBbits.LATB1
+#define SDO_PORT               PORTBbits.RB1
+#define SDO_WPU                WPUBbits.WPUB1
+#define SDO_OD                ODCONBbits.ODB1
+#define SDO_ANS                ANSELBbits.ANSB1
+#define SDO_SetHigh()            do { LATBbits.LATB1 = 1; } while(0)
+#define SDO_SetLow()             do { LATBbits.LATB1 = 0; } while(0)
+#define SDO_Toggle()             do { LATBbits.LATB1 = ~LATBbits.LATB1; } while(0)
+#define SDO_GetValue()           PORTBbits.RB1
+#define SDO_SetDigitalInput()    do { TRISBbits.TRISB1 = 1; } while(0)
+#define SDO_SetDigitalOutput()   do { TRISBbits.TRISB1 = 0; } while(0)
+#define SDO_SetPullup()      do { WPUBbits.WPUB1 = 1; } while(0)
+#define SDO_ResetPullup()    do { WPUBbits.WPUB1 = 0; } while(0)
+#define SDO_SetPushPull()    do { ODCONBbits.ODB1 = 0; } while(0)
+#define SDO_SetOpenDrain()   do { ODCONBbits.ODB1 = 1; } while(0)
+#define SDO_SetAnalogMode()  do { ANSELBbits.ANSB1 = 1; } while(0)
+#define SDO_SetDigitalMode() do { ANSELBbits.ANSB1 = 0; } while(0)
 
 // get/set SDI aliases
 #define SDI_TRIS               TRISBbits.TRISB2
